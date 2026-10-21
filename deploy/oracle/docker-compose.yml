@@ -1,0 +1,60 @@
+# Production SèneTontine sur un serveur Oracle Cloud "Always Free" (ou tout serveur Linux).
+# Trois services : base PostgreSQL (jamais exposée sur Internet), backend Spring Boot, et Caddy
+# qui sert l'API en HTTPS sur api.<ton-domaine> avec un certificat Let's Encrypt automatique.
+# Lancement : docker compose up -d --build   (depuis ce dossier, après avoir rempli .env)
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: senetontine
+      POSTGRES_USER: senetontine
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?Renseigne DB_PASSWORD dans .env}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U senetontine -d senetontine"]
+      interval: 10s
+      retries: 10
+
+  api:
+    build: ../..
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: jdbc:postgresql://db:5432/senetontine
+      DATABASE_USERNAME: senetontine
+      DATABASE_PASSWORD: ${DB_PASSWORD}
+      DB_POOL_SIZE: "10"
+      CORS_ORIGINS: https://${APP_DOMAIN}
+      APP_PUBLIC_URL: https://${APP_DOMAIN}
+      NABOOPAY_API_KEY: ${NABOOPAY_API_KEY:-}
+      NABOOPAY_WEBHOOK_SECRET: ${NABOOPAY_WEBHOOK_SECRET:-}
+      TZ: Africa/Dakar
+      # Le serveur Oracle gratuit a plus de mémoire que l'offre 512 Mo prévue dans le Dockerfile.
+      JAVA_OPTS: -Xmx768m -XX:MaxMetaspaceSize=192m -XX:+UseSerialGC
+    expose:
+      - "8080"
+
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    depends_on:
+      - api
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      API_DOMAIN: ${API_DOMAIN:?Renseigne API_DOMAIN dans .env}
+      ACME_EMAIL: ${ACME_EMAIL:?Renseigne ACME_EMAIL dans .env}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+
+volumes:
+  pgdata:
+  caddy_data:
+  caddy_config:

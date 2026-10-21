@@ -1,0 +1,10 @@
+-- Migration de reference (baseline) : ne s'execute jamais reellement, grace a
+-- spring.flyway.baseline-on-migrate=true + spring.flyway.baseline-version=1 dans
+-- application.properties. Elle documente simplement que tout ce qui existait deja en base au
+-- moment de l'adoption de Flyway (tables users, tontine, tontine_member, payment,
+-- withdrawal_request, wallet, wallet_transaction, kyc_verification, auth_token...) est
+-- considere comme "version 1".
+--
+-- A PARTIR DE MAINTENANT : toute evolution de schema (nouvelle colonne, nouvelle table, nouvel
+-- index...) doit etre un nouveau fichier V2__description.sql, V3__description.sql, etc. dans ce
+-- meme dossier - jamais une modification manuelle en base, jamais un retour a ddl-auto=update.

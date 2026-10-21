@@ -1,0 +1,24 @@
+# Déploiement Render (offre gratuite). Les valeurs "sync: false" se saisissent dans le
+# tableau de bord Render, jamais dans ce fichier.
+services:
+  - type: web
+    name: senetontine-api
+    runtime: docker
+    plan: free
+    region: frankfurt
+    healthCheckPath: /actuator/health
+    envVars:
+      - key: DATABASE_URL        # jdbc:postgresql://<hote-neon>/<base>?sslmode=require
+        sync: false
+      - key: DATABASE_USERNAME
+        sync: false
+      - key: DATABASE_PASSWORD
+        sync: false
+      - key: CORS_ORIGINS        # ex. https://senetontine.com
+        sync: false
+      - key: APP_PUBLIC_URL      # ex. https://senetontine.com
+        sync: false
+      - key: NABOOPAY_API_KEY
+        sync: false
+      - key: NABOOPAY_WEBHOOK_SECRET
+        sync: false
