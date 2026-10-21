@@ -35,6 +35,7 @@ public class FreshDatabaseInitializer {
             DataSource ds = flyway.getConfiguration().getDataSource();
             if (isEmpty(ds)) {
                 log.info("Base vide : création du schéma complet (version {})", SCHEMA_VERSION);
+                dropFailedHistory(ds); // reste d'un essai précédent qui a échoué
                 runSchema(ds);
                 Flyway.configure()
                         .configuration(flyway.getConfiguration())
@@ -50,11 +51,20 @@ public class FreshDatabaseInitializer {
     private static boolean isEmpty(DataSource ds) {
         try (Connection c = ds.getConnection(); Statement st = c.createStatement();
              ResultSet rs = st.executeQuery(
-                     "select count(*) from information_schema.tables where table_schema = 'public'")) {
+                     "select count(*) from information_schema.tables where table_schema = 'public'"
+                             + " and table_name <> 'flyway_schema_history'")) {
             rs.next();
             return rs.getLong(1) == 0;
         } catch (SQLException e) {
             throw new IllegalStateException("Impossible d'inspecter la base", e);
+        }
+    }
+
+    private static void dropFailedHistory(DataSource ds) {
+        try (Connection c = ds.getConnection(); Statement st = c.createStatement()) {
+            st.execute("DROP TABLE IF EXISTS public.flyway_schema_history");
+        } catch (SQLException e) {
+            throw new IllegalStateException("Impossible de nettoyer l'historique Flyway", e);
         }
     }
 
