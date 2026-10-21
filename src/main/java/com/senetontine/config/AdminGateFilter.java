@@ -48,7 +48,10 @@ public class AdminGateFilter extends OncePerRequestFilter {
 
     @Override
     protected boolean shouldNotFilter(HttpServletRequest req) {
-        return !req.getRequestURI().startsWith("/api/admin");
+        // La requête de pré-vérification CORS (OPTIONS) n'envoie jamais la valeur des en-têtes
+        // personnalisés : la bloquer empêchait le navigateur d'appeler l'API admin depuis
+        // senetontine.com. Elle ne renvoie aucune donnée, on la laisse passer.
+        return !req.getRequestURI().startsWith("/api/admin") || "OPTIONS".equalsIgnoreCase(req.getMethod());
     }
 
     @Override
