@@ -1,5 +1,6 @@
 package com.senetontine.repository;
 
+import java.time.Instant;
 import com.senetontine.model.CreatorPayment;
 import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -34,4 +35,9 @@ public interface CreatorPaymentRepository extends JpaRepository<CreatorPayment, 
     List<CreatorPayment> lockAvailableRenewalRights(@Param("userId") Long userId, @Param("tontineId") Long tontineId);
 
     List<CreatorPayment> findTop50ByUserIdOrderByIdDesc(Long userId);
+
+    List<CreatorPayment> findByStatusAndPaidAtGreaterThanEqual(CreatorPayment.Status status, Instant from);
+
+    List<CreatorPayment> findTop8ByStatusOrderByPaidAtDesc(CreatorPayment.Status status);
+
 }

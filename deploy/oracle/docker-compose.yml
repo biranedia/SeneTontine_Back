@@ -28,13 +28,15 @@ services:
       DATABASE_USERNAME: senetontine
       DATABASE_PASSWORD: ${DB_PASSWORD}
       DB_POOL_SIZE: "10"
-      CORS_ORIGINS: https://${APP_DOMAIN}
+      CORS_ORIGINS: https://${APP_DOMAIN},https://www.${APP_DOMAIN}
       APP_PUBLIC_URL: https://${APP_DOMAIN}
       NABOOPAY_API_KEY: ${NABOOPAY_API_KEY:-}
+      ADMIN_PHONES: ${ADMIN_PHONES:-}
+      ADMIN_PATH: ${ADMIN_PATH:-}
       NABOOPAY_WEBHOOK_SECRET: ${NABOOPAY_WEBHOOK_SECRET:-}
       TZ: Africa/Dakar
       # Le serveur Oracle gratuit a plus de mémoire que l'offre 512 Mo prévue dans le Dockerfile.
-      JAVA_OPTS: -Xmx768m -XX:MaxMetaspaceSize=192m -XX:+UseSerialGC
+      JAVA_OPTS: -Xmx1g -XX:MaxMetaspaceSize=256m -XX:+UseG1GC
     expose:
       - "8080"
 

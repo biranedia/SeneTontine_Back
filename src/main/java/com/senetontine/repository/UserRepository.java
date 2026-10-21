@@ -1,5 +1,6 @@
 package com.senetontine.repository;
 
+import java.time.Instant;
 import com.senetontine.model.User;
 import com.senetontine.model.UserRole;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -22,4 +23,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
     // telephone - un admin peut avoir seulement l'un ou l'autre sous la main.
     List<User> findTop100ByFullNameContainingIgnoreCaseOrPhoneContainingIgnoreCaseOrderByIdDesc(String name, String phone);
     List<User> findTop100ByOrderByIdDesc();
+
+    List<User> findByCreatedAtGreaterThanEqual(Instant from);
+
 }

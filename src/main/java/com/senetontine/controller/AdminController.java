@@ -11,6 +11,8 @@ import com.senetontine.model.TontineStatus;
 import com.senetontine.model.User;
 import com.senetontine.model.UserRole;
 import com.senetontine.service.AdminService;
+import com.senetontine.service.AdminAnalyticsService;
+import com.senetontine.dto.AnalyticsDtos.Analytics;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
@@ -32,6 +34,12 @@ import java.util.List;
 public class AdminController {
 
     private final AdminService adminService;
+    private final AdminAnalyticsService adminAnalyticsService;
+
+    @GetMapping("/analytics")
+    public Analytics analytics(@AuthenticationPrincipal User caller, @RequestParam(defaultValue = "30") int days) {
+        return adminAnalyticsService.analytics(caller, days);
+    }
 
     @GetMapping("/overview")
     public PlatformOverview overview(@AuthenticationPrincipal User caller) {

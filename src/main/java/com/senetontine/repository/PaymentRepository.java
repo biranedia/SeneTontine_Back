@@ -1,5 +1,6 @@
 package com.senetontine.repository;
 
+import java.time.Instant;
 import com.senetontine.model.Payment;
 import com.senetontine.model.PaymentStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -23,4 +24,7 @@ public interface PaymentRepository extends JpaRepository<Payment, Long> {
     // tout (plateforme flambant neuve), SUM() renverrait NULL plutot que 0.
     @Query("select coalesce(sum(p.amount + p.penaltyAmount), 0) from Payment p where p.status in ('PAID', 'LATE')")
     BigDecimal sumAllPaidAmounts();
+
+    List<Payment> findByConfirmedAtGreaterThanEqual(Instant from);
+
 }

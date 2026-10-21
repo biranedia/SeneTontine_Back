@@ -1,5 +1,6 @@
 package com.senetontine.repository;
 
+import java.time.Instant;
 import com.senetontine.model.Tontine;
 import com.senetontine.model.TontineStatus;
 import com.senetontine.model.TontineVisibility;
@@ -39,4 +40,7 @@ public interface TontineRepository extends JpaRepository<Tontine, Long> {
     long countByCreatedById(Long userId);
 
     boolean existsByRenewedFromId(Long tontineId);
+
+    List<Tontine> findByCreatedAtGreaterThanEqual(Instant from);
+
 }
