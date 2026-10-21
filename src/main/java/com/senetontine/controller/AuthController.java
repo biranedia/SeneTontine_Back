@@ -18,9 +18,11 @@ import org.springframework.web.server.ResponseStatusException;
 public class AuthController {
 
     private final AuthService authService;
+    private final com.senetontine.service.RegistrationRateLimiter registrationRateLimiter;
 
     @PostMapping("/register")
-    public AuthResponse register(@Valid @RequestBody RegisterRequest req) {
+    public AuthResponse register(@Valid @RequestBody RegisterRequest req, jakarta.servlet.http.HttpServletRequest http) {
+        registrationRateLimiter.check(http);
         return authService.register(req);
     }
 

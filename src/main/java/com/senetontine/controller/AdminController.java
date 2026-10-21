@@ -35,6 +35,13 @@ public class AdminController {
 
     private final AdminService adminService;
     private final AdminAnalyticsService adminAnalyticsService;
+    private final com.senetontine.service.AdminAccountService adminAccountService;
+
+    @PostMapping("/users/{id}/reset-password")
+    public com.senetontine.service.AdminAccountService.ResetResult resetPassword(
+            @AuthenticationPrincipal User caller, @PathVariable Long id) {
+        return adminAccountService.resetPassword(caller, id);
+    }
 
     @GetMapping("/analytics")
     public Analytics analytics(@AuthenticationPrincipal User caller, @RequestParam(defaultValue = "30") int days) {

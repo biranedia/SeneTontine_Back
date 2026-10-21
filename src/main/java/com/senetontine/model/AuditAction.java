@@ -18,5 +18,7 @@ public enum AuditAction {
     // utilisateurs sont toutes des actions a fort impact qui doivent rester tracables.
     TONTINE_STATUS_CHANGED,
     MESSAGE_DELETED,
-    ANNOUNCEMENT_BROADCAST
+    ANNOUNCEMENT_BROADCAST,
+    // Mot de passe oublie : l'admin genere un mot de passe temporaire (voir AdminAccountService).
+    PASSWORD_RESET
 }
