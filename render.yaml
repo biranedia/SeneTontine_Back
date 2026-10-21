@@ -8,8 +8,6 @@ services:
     region: frankfurt
     healthCheckPath: /actuator/health
     autoDeploy: true
-    domains:
-      - api.senetontine.com
     envVars:
       - key: DATABASE_URL        # Neon, projet senetontine (Francfort), connexion directe
         value: jdbc:postgresql://ep-rough-hat-bam5cslo.c-8.eu-central-1.aws.neon.tech/neondb?sslmode=require
@@ -18,7 +16,7 @@ services:
       - key: DATABASE_PASSWORD
         sync: false
       - key: CORS_ORIGINS
-        value: https://senetontine.com,https://www.senetontine.com
+        value: https://senetontine.com,https://www.senetontine.com,https://senetontine.pages.dev
       - key: APP_PUBLIC_URL
         value: https://senetontine.com
       - key: DB_POOL_SIZE        # Neon gratuit : peu de connexions
