@@ -37,6 +37,31 @@ public class AdminController {
     private final AdminAnalyticsService adminAnalyticsService;
     private final com.senetontine.service.AdminAccountService adminAccountService;
 
+    public record UpdateUserRequest(String fullName, String phone) {}
+
+    @DeleteMapping("/users/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteUser(@AuthenticationPrincipal User caller, @PathVariable Long id) {
+        adminAccountService.deleteUser(caller, id);
+    }
+
+    @PutMapping("/users/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void updateUser(@AuthenticationPrincipal User caller, @PathVariable Long id, @RequestBody UpdateUserRequest req) {
+        adminAccountService.updateUser(caller, id, req.fullName(), req.phone());
+    }
+
+    @PostMapping("/users/{id}/grant-credit")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void grantCredit(@AuthenticationPrincipal User caller, @PathVariable Long id) {
+        adminAccountService.grantCredit(caller, id);
+    }
+
+    @GetMapping("/revenue")
+    public List<com.senetontine.service.AdminAccountService.RevenueItem> revenue(@AuthenticationPrincipal User caller) {
+        return adminAccountService.revenue(caller);
+    }
+
     @PostMapping("/users/{id}/reset-password")
     public com.senetontine.service.AdminAccountService.ResetResult resetPassword(
             @AuthenticationPrincipal User caller, @PathVariable Long id) {

@@ -20,5 +20,8 @@ public enum AuditAction {
     MESSAGE_DELETED,
     ANNOUNCEMENT_BROADCAST,
     // Mot de passe oublie : l'admin genere un mot de passe temporaire (voir AdminAccountService).
-    PASSWORD_RESET
+    PASSWORD_RESET,
+    USER_DELETED,
+    USER_UPDATED,
+    CREDIT_GRANTED
 }
