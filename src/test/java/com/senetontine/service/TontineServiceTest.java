@@ -64,7 +64,7 @@ class TontineServiceTest {
     }
 
     private CreateTontineRequest request(String wave, String om) {
-        return new CreateTontineRequest("Famille", new BigDecimal("25000"), 4, null, null, false, 30, wave, om);
+        return new CreateTontineRequest("Famille", new BigDecimal("25000"), 4, null, null, false, 30, wave, om, null);
     }
 
     private TontineMember membership(MemberRole role, Integer turnOrder) {

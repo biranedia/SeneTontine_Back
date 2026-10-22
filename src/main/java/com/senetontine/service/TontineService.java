@@ -77,7 +77,7 @@ public class TontineService {
         t.setRotationType(old.getRotationType());
         t.setPenaltyPerDay(old.getPenaltyPerDay());
         t.setCycleDurationDays(old.getCycleDurationDays());
-        t.setVisibility(old.getVisibility());
+        t.setVisibility(TontineVisibility.PRIVATE);
         t.setWavePhone(old.getWavePhone());
         t.setOrangeMoneyPhone(old.getOrangeMoneyPhone());
         t.setCreatedBy(caller);
@@ -149,9 +149,17 @@ public class TontineService {
         if (req.rotationType() != null) tontine.setRotationType(req.rotationType());
         tontine.setPenaltyPerDay(req.penaltyPerDay() != null ? req.penaltyPerDay() : BigDecimal.ZERO);
         if (req.cycleDurationDays() != null) tontine.setCycleDurationDays(req.cycleDurationDays());
-        tontine.setVisibility(Boolean.TRUE.equals(req.makePublic()) ? TontineVisibility.PUBLIC : TontineVisibility.PRIVATE);
+        // Plus de tontines publiques : un escroc pourrait en publier une et piéger des inconnus.
+        // On ne rejoint une tontine que sur invitation (code ou ajout par numéro).
+        tontine.setVisibility(TontineVisibility.PRIVATE);
         tontine.setWavePhone(wave);
         tontine.setOrangeMoneyPhone(om);
+        LocalDate start = req.startDate();
+        if (start != null && (start.isBefore(LocalDate.now()) || start.isAfter(LocalDate.now().plusYears(1)))) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "La date du premier tour doit être aujourd'hui ou dans les 12 prochains mois.");
+        }
+        tontine.setStartDate(start);
     }
 
     // Une tontine PRIVATE ne se rejoint que via code d'invitation ou ajout direct par son
@@ -167,6 +175,7 @@ public class TontineService {
     }
 
     public List<TontineSummary> discover(User user) {
+        if (true) return List.of(); // découverte publique désactivée (sécurité anti-arnaque)
         return tontineRepository.findTop50ByVisibilityAndStatusOrderByIdDesc(TontineVisibility.PUBLIC, TontineStatus.PENDING)
                 .stream()
                 .filter(t -> memberRepository.findByTontineIdAndUserId(t.getId(), user.getId()).isEmpty())
@@ -231,7 +240,9 @@ public class TontineService {
     private void start(Tontine tontine) {
         tontine.setStatus(TontineStatus.ACTIVE);
         tontine.setCurrentRound(1);
-        tontine.setNextTurnDate(LocalDate.now().plusDays(tontine.getCycleDurationDays()));
+        LocalDate first = tontine.getStartDate();
+        tontine.setNextTurnDate(first != null && first.isAfter(LocalDate.now())
+                ? first : LocalDate.now().plusDays(tontine.getCycleDurationDays()));
     }
 
     // Quitter une tontine. Interdit au createur, et interdit a un membre qui a deja recu son
@@ -371,7 +382,8 @@ public class TontineService {
                 t.getPenaltyPerDay(),
                 t.getVisibility() == TontineVisibility.PUBLIC,
                 t.getWavePhone(),
-                t.getOrangeMoneyPhone()
+                t.getOrangeMoneyPhone(),
+                t.getStartDate() != null ? t.getStartDate().toString() : null
         );
     }
 

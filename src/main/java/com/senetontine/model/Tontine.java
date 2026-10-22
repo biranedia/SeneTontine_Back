@@ -52,6 +52,11 @@ public class Tontine {
     // calculer les penalites de retard (voir Tontine.cycleDurationDays et PaymentService.pay).
     private LocalDate nextTurnDate;
 
+    // Date du premier tour choisie par le créateur (facultative). Si la tontine est complète
+    // avant cette date, la 1re échéance est fixée à cette date ; sinon à aujourd'hui + 1 tour.
+    @Column(name = "start_date")
+    private LocalDate startDate;
+
     // Duree d'un cycle de cotisation en jours (mensuel par defaut). Pas encore expose dans
     // l'ecran de creation de tontine cote front - valeur par defaut raisonnable pour l'instant,
     // le champ existe pour permettre une personnalisation future sans nouvelle migration.

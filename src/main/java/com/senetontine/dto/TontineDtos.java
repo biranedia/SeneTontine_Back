@@ -84,7 +84,8 @@ public class TontineDtos {
             BigDecimal penaltyPerDay,
             boolean isPublic,
             String wavePhone,
-            String orangeMoneyPhone
+            String orangeMoneyPhone,
+            String startDate
     ) {}
 
     public record CreateTontineRequest(
@@ -99,7 +100,9 @@ public class TontineDtos {
             // Au moins un des deux est exige (verifie dans TontineService) : c'est la que les
             // membres envoient leur cotisation, l'app ne fait transiter aucun argent.
             @Pattern(regexp = "^$|" + SN_PHONE, message = SN_PHONE_MSG) String wavePhone,
-            @Pattern(regexp = "^$|" + SN_PHONE, message = SN_PHONE_MSG) String orangeMoneyPhone
+            @Pattern(regexp = "^$|" + SN_PHONE, message = SN_PHONE_MSG) String orangeMoneyPhone,
+            // Date du premier tour (facultative) : 1re échéance de cotisation et 1er versement.
+            java.time.LocalDate startDate
     ) {}
 
     public record AddMemberByPhoneRequest(
