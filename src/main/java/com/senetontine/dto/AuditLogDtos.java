@@ -11,6 +11,7 @@ public class AuditLogDtos {
             String targetType,
             Long targetId,
             String details,
+            String actorIp,
             Instant createdAt
     ) {}
 }

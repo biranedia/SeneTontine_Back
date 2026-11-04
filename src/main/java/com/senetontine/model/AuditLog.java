@@ -8,11 +8,8 @@ import lombok.Setter;
 import java.time.Instant;
 
 // Trace immuable des actions sensibles effectuees par un admin plateforme ou un superviseur de
-// tontine (voir AuditAction) : qui a fait quoi, sur quoi, quand. Jamais modifie ni supprime apres
-// creation - c'est la garantie que la trace reste fiable en cas de litige ou d'enquete. Ne
-// capture pas encore l'adresse IP de l'appelant (necessiterait de faire transiter la
-// HttpServletRequest depuis les controleurs jusqu'aux services) : ameliorations possible avant
-// une vraie mise en production, pas indispensable en mode simulation.
+// tontine (voir AuditAction) : qui a fait quoi, sur quoi, quand, depuis quelle IP.
+// Jamais modifie ni supprime apres creation - garantie d'integrite en cas de litige.
 @Entity
 @Getter
 @Setter
@@ -39,6 +36,10 @@ public class AuditLog {
 
     @Column(length = 1000)
     private String details;
+
+    // IPv4 ou IPv6 (max 45 car.) ; null pour les entrees anterieures a V10.
+    @Column(length = 45)
+    private String actorIp;
 
     @Column(nullable = false)
     private Instant createdAt = Instant.now();
