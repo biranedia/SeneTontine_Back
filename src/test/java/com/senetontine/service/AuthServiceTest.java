@@ -31,14 +31,19 @@ class AuthServiceTest {
     @Mock private UserRepository userRepository;
     @Mock private AuthTokenRepository authTokenRepository;
     @Mock private PasswordEncoder passwordEncoder;
+    @Mock private AuditLogService auditLogService;
 
     private AuthService authService;
     private final TokenGenerator tokenGenerator = new TokenGenerator();
     private final LoginRateLimiter loginRateLimiter = new LoginRateLimiter();
 
+    // IP fictive utilisee dans tous les tests
+    private static final String TEST_IP = "127.0.0.1";
+
     @BeforeEach
     void setUp() {
-        authService = new AuthService(userRepository, authTokenRepository, passwordEncoder, tokenGenerator, loginRateLimiter);
+        authService = new AuthService(userRepository, authTokenRepository, passwordEncoder,
+                tokenGenerator, loginRateLimiter, auditLogService);
     }
 
     @Test
@@ -66,13 +71,10 @@ class AuthServiceTest {
         ArgumentCaptor<User> userCaptor = ArgumentCaptor.forClass(User.class);
         verify(userRepository).save(userCaptor.capture());
         assertThat(userCaptor.getValue().getPasswordHash()).isEqualTo("hashed-password");
-        // Trace du consentement aux CGU au moment precis de l'inscription (voir V15 et
-        // RegisterRequest.acceptedTerms, deja garanti true a ce stade par la validation).
         assertThat(userCaptor.getValue().getTosAcceptedAt()).isNotNull();
 
         ArgumentCaptor<AuthToken> tokenCaptor = ArgumentCaptor.forClass(AuthToken.class);
         verify(authTokenRepository).save(tokenCaptor.capture());
-        // le token stocke en base est le HASH, jamais la valeur renvoyee au client
         assertThat(tokenCaptor.getValue().getTokenHash()).isNotEqualTo(response.token());
         assertThat(tokenCaptor.getValue().getExpiresAt()).isAfter(Instant.now());
     }
@@ -83,7 +85,7 @@ class AuthServiceTest {
 
         var req = new LoginRequest("+221770000000", "whatever");
 
-        assertThatThrownBy(() -> authService.login(req))
+        assertThatThrownBy(() -> authService.login(req, TEST_IP))
                 .isInstanceOf(ResponseStatusException.class)
                 .hasMessageContaining("Numero ou mot de passe incorrect");
     }
@@ -98,7 +100,7 @@ class AuthServiceTest {
 
         var req = new LoginRequest("+221770000000", "wrong");
 
-        assertThatThrownBy(() -> authService.login(req))
+        assertThatThrownBy(() -> authService.login(req, TEST_IP))
                 .isInstanceOf(ResponseStatusException.class)
                 .hasMessageContaining("Numero ou mot de passe incorrect");
     }
@@ -115,11 +117,11 @@ class AuthServiceTest {
 
         // 5 tentatives echouees consomment le quota...
         for (int i = 0; i < 5; i++) {
-            assertThatThrownBy(() -> authService.login(req)).isInstanceOf(ResponseStatusException.class);
+            assertThatThrownBy(() -> authService.login(req, TEST_IP)).isInstanceOf(ResponseStatusException.class);
         }
 
         // ...la 6e est bloquee AVANT meme d'aller verifier le mot de passe.
-        assertThatThrownBy(() -> authService.login(req))
+        assertThatThrownBy(() -> authService.login(req, TEST_IP))
                 .isInstanceOf(ResponseStatusException.class)
                 .hasMessageContaining("Trop de tentatives");
 
@@ -149,12 +151,12 @@ class AuthServiceTest {
         user.setId(1L);
         user.setPhone("+221770000000");
         user.setPasswordHash("hashed");
+        user.setActive(true);
         when(userRepository.findByPhone("+221770000000")).thenReturn(Optional.of(user));
         when(passwordEncoder.matches("goodpass", "hashed")).thenReturn(true);
         when(authTokenRepository.save(any())).thenAnswer(inv -> inv.getArgument(0));
 
-        // 5 sessions deja actives (le maximum autorise) : la plus ancienne doit etre revoquee
-        // pour faire de la place a la nouvelle connexion.
+        // 5 sessions deja actives : la plus ancienne doit etre revoquee
         List<AuthToken> existing = new ArrayList<>();
         for (int i = 0; i < 5; i++) {
             AuthToken t = new AuthToken();
@@ -163,7 +165,7 @@ class AuthServiceTest {
         }
         when(authTokenRepository.findByUserIdAndRevokedFalseOrderByCreatedAtAsc(1L)).thenReturn(existing);
 
-        authService.login(new LoginRequest("+221770000000", "goodpass"));
+        authService.login(new LoginRequest("+221770000000", "goodpass"), TEST_IP);
 
         assertThat(existing.get(0).isRevoked()).isTrue();
         assertThat(existing.subList(1, 5)).allSatisfy(t -> assertThat(t.isRevoked()).isFalse());
