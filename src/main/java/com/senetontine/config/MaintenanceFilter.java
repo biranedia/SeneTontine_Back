@@ -1,6 +1,5 @@
 package com.senetontine.config;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.senetontine.service.MaintenanceService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -12,7 +11,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
-import java.util.Map;
 
 /**
  * Bloque toutes les requêtes non-admin quand le mode maintenance est activé.
@@ -25,7 +23,6 @@ import java.util.Map;
 public class MaintenanceFilter extends OncePerRequestFilter {
 
     private final MaintenanceService maintenanceService;
-    private final ObjectMapper objectMapper;
 
     @Override
     protected void doFilterInternal(HttpServletRequest req, HttpServletResponse res, FilterChain chain)
@@ -40,11 +37,11 @@ public class MaintenanceFilter extends OncePerRequestFilter {
             chain.doFilter(req, res);
             return;
         }
+        String msg = maintenanceService.getMessage()
+                .replace("\\", "\\\\")
+                .replace("\"", "\\\"");
         res.setStatus(503);
         res.setContentType("application/json;charset=UTF-8");
-        res.getWriter().write(objectMapper.writeValueAsString(Map.of(
-                "error", "maintenance",
-                "message", maintenanceService.getMessage()
-        )));
+        res.getWriter().write("{\"error\":\"maintenance\",\"message\":\"" + msg + "\"}");
     }
 }
